@@ -1,36 +1,38 @@
+from sklearn.base import TransformerMixin
 import numpy as np
 
-def IEncoder(n_categories):
+class IEncoder(TransformerMixin):
+    def __init__(self):
+        # this dictionary contains the category as the key and the encoded value as the value
+        self.encoding_dict_ = {}
+
+    def fit(self, X, y=None):
+        unique_categories = np.unique(X)
+        n_categories = len(unique_categories)
+
+        # the step is calculated in radians
+        theta = 2 * np.pi / n_categories
+        theta_arr = np.arange(0, 2 * np.pi, theta)
+        theta_arr = np.round(theta_arr, 2)
+
+        for idx, category in enumerate(unique_categories):
+          self.encoding_dict_[category] = theta_arr[idx]
+
+        return self
+
+    def transform(self, X):
+        return np.vectorize(self.encoding_dict_.get)(X)
+
+    def fit_transform(self, X, y=None):
+        # all categories in X are replaced with their encoded values
+        return self.fit(X, y).transform(X)
     
-    theta = 360 / n_categories
-    theta_arr = np.arange(0, 360, theta)
 
-    z_arr = np.exp(1j * np.deg2rad(theta_arr))
-    
-    # QUESTION: what do steps 3 and 4 mean?
-    # phases = np.angle(z_arr, deg=True)
+X = np.array(['cat', 'dog', 'fish', 'cat', 'dog', 'fish'])
 
-    phases = theta_arr
+encoder = IEncoder()
 
-    f_encodings = np.cos(np.deg2rad(phases))
+encoded_X = encoder.fit_transform(X)
 
-    theta_arr = np.round(theta_arr, 2)
-    z_arr = np.round(z_arr, 2)
-    phases = np.round(phases, 2)
-    f_encodings = np.round(f_encodings, 2)
-
-    return theta_arr, z_arr, phases, f_encodings
-
-
-n_categories = 8
-theta_arr, z_arr, phases, f_encodings = IEncoder(n_categories)
-
-print("theta array (degrees):", theta_arr)
-
-print("[")
-for c in z_arr:
-    print(c)
-print("]")
-
-print("phases (degrees):", phases)
-print("feature encodings:", f_encodings)
+print("Originalni podaci:", X)
+print("Kodirani podaci:", encoded_X)
