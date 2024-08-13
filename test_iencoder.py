@@ -21,3 +21,10 @@ encoder = IEncoder()
 encoded_X = encoder.fit_transform(X)
 print("Original data:", X)
 print("Encoded data:", encoded_X)
+
+# TEST 4
+X = np.array([0.5, 0.8, 0.123])
+encoder = IEncoder()
+encoded_X = encoder.fit_transform(X)
+print("Original data:", X)
+print("Encoded data:", encoded_X)
