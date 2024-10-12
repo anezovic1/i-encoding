@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: iencoder
+Version: 0.1
+Summary: Custom IEncoder similar to OneHotEncoder
+Author: Anida Nezovic
+Author-email: nezovicanida@gmail.com
