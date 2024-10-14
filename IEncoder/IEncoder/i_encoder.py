@@ -45,7 +45,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
 
       return X_columns, n_samples, n_features
 
-    def _is_categorical_or_integer(self, X):
+    def _is_categorical(self, X):
         return X.dtype.kind in {'O', 'U', 'S'} or np.issubdtype(X.dtype, np.integer)
 
     def _skip_encoding(self, X):
@@ -69,7 +69,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
 
         for i in range(n_features):
             Xi = X_list[i]
-            if not self._is_categorical_or_integer(Xi):
+            if not self._is_categorical(Xi):
                 continue
             if self._skip_encoding(Xi):
                 continue
@@ -95,16 +95,20 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         X_list, n_samples, n_features = self._check_X(X)
         X_transformed = np.zeros((n_samples, n_features))
 
+        encoding_index = 0
+
         for i in range(n_features):
-            Xi = X_list[i]
-            if not self._is_categorical_or_integer(Xi):
+            Xi = X_list[i] 
+            if not self._is_categorical(Xi):
                 X_transformed[:, i] = Xi
                 continue
             if self._skip_encoding(Xi):
                 X_transformed[:, i] = Xi
                 continue
-            encoding_dict = self.encoding_dict_[i]
+            encoding_dict = self.encoding_dict_[encoding_index] # encoding_dict_ already has key-value pairs
             X_transformed[:, i] = np.vectorize(encoding_dict.get)(Xi)
+
+            encoding_index = encoding_index + 1
 
         return X_transformed
 
