@@ -30,3 +30,18 @@ print("employee data:\n", df)
 
 transformed = encoder.fit_transform(df)
 print("data that is i encoded:\n", transformed)
+
+# third example
+data_new_2 = pd.DataFrame({'Employee id': [10, 20, 15, 25, 30],
+        'Gender': ['M', 'F', 'F', 'M', 'F'],
+        'Remarks': ['Good', 'Nice', 'Good', 'Great', 'Nice'],
+        'NewColumn': [True, True, False, False, False],
+    })
+
+encoder = IEncoder()
+
+transformed = encoder.fit_transform(data_new_2)
+print("data that is i encoded:\n", transformed)
+
+inversed = encoder.inverse_transform(transformed)
+print("inverse data:\n", inversed)
