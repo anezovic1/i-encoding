@@ -15,28 +15,35 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         self.encoding_dict_ = None
         self.theta_arr_ = None
         self.feature_names_in_ = None
-
+            
     def _check_finite(self, X):
         """
         Check if array contains NaN or infinite values.
         This check is only applicable for numeric data.
         """
-        if np.issubdtype(X.dtype, np.number):
-            if np.any(np.isnan(X)) or np.any(np.isinf(X)):
-                raise ValueError("Input contains NaN, infinity or a value too large for dtype.")
+        if hasattr(X, 'iloc'):  
+            for col in X.columns:
+                if np.issubdtype(X[col].dtype, np.number): 
+                    if np.any(np.isnan(X[col])) or np.any(np.isinf(X[col])):
+                        raise ValueError(f"Column {col} contains NaN or infinity.")
+        else:
+            if np.issubdtype(X.dtype, np.number):
+                if np.any(np.isnan(X)) or np.any(np.isinf(X)):
+                    raise ValueError("Input contains NaN, infinity or a value too large for dtype.")
+
 
     def _check_X(self, X, force_all_finite=True):
+        # ovaj if se izvrsava kada NIJE dataframe
         if not (hasattr(X, "iloc") and getattr(X, "ndim", 0) == 2):
             X_temp = check_array(X, dtype=None)
-            
             if not hasattr(X, "dtype") and np.issubdtype(X_temp.dtype, np.str_):
                 X = check_array(X, dtype=object)
             else:
                 X = X_temp
 
-            if force_all_finite:
-                self._check_finite(X)
-        
+        if force_all_finite:
+            self._check_finite(X)
+
         if hasattr(X, 'columns'):
             self.feature_names_in_ = X.columns.to_list()
         else:
@@ -44,9 +51,11 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
 
         n_samples, n_features = X.shape
         X_columns = []
-
         for i in range(n_features):
+
             Xi = X.iloc[:, i] if hasattr(X, 'iloc') else X[:, i]
+
+            # this throws exception if dataframe contains NaN values
             Xi = check_array(Xi, ensure_2d=False, dtype=None)
 
             if force_all_finite:
@@ -68,7 +77,6 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             return False
 
     def _fit(self, X, y=None):
-       
         X_list, n_samples, n_features = self._check_X(X)
         self.n_features_in_ = n_features
         self.categories_ = []
