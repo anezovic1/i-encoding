@@ -16,34 +16,45 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         self.theta_arr_ = None
         self.feature_names_in_ = None
 
-    def _check_X(self, X):
-      """
-      Custom check_array method:
-      - Converts list of strings to object dtype
-      - Checks for missing values for object dtype data
-      - Returns list of features (arrays)
-      """
-      if not (hasattr(X, "iloc") and getattr(X, "ndim", 0) == 2):
-         X_temp = check_array(X, dtype=None)
-         if not hasattr(X, "dtype") and np.issubdtype(X_temp.dtype, np.str_):
-               X = check_array(X, dtype=object)
-         else:
-               X = X_temp
-         needs_validation = False
-      else:
-         needs_validation = True
+    def _check_finite(self, X):
+        """
+        Check if array contains NaN or infinite values.
+        This check is only applicable for numeric data.
+        """
+        if np.issubdtype(X.dtype, np.number):
+            if np.any(np.isnan(X)) or np.any(np.isinf(X)):
+                raise ValueError("Input contains NaN, infinity or a value too large for dtype.")
 
-      n_samples, n_features = X.shape
-      X_columns = []
+    def _check_X(self, X, force_all_finite=True):
+        if not (hasattr(X, "iloc") and getattr(X, "ndim", 0) == 2):
+            X_temp = check_array(X, dtype=None)
+            
+            if not hasattr(X, "dtype") and np.issubdtype(X_temp.dtype, np.str_):
+                X = check_array(X, dtype=object)
+            else:
+                X = X_temp
 
-      for i in range(n_features):
-         Xi = X.iloc[:, i]
-         Xi = check_array(
-               Xi, ensure_2d=False, dtype=None
-         )
-         X_columns.append(Xi)
+            if force_all_finite:
+                self._check_finite(X)
+        
+        if hasattr(X, 'columns'):
+            self.feature_names_in_ = X.columns.to_list()
+        else:
+            self.feature_names_in_ = ['Column%d' % i for i in range(X.shape[1])]
 
-      return X_columns, n_samples, n_features
+        n_samples, n_features = X.shape
+        X_columns = []
+
+        for i in range(n_features):
+            Xi = X.iloc[:, i] if hasattr(X, 'iloc') else X[:, i]
+            Xi = check_array(Xi, ensure_2d=False, dtype=None)
+
+            if force_all_finite:
+                self._check_finite(Xi)
+            
+            X_columns.append(Xi)
+
+        return X_columns, n_samples, n_features
 
     def _is_categorical(self, X):
         return X.dtype.kind in {'O', 'U', 'S'} or np.issubdtype(X.dtype, np.integer)
@@ -57,12 +68,9 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             return False
 
     def _fit(self, X, y=None):
-        """
-        Fit method for BaseEncoder1, similar to IEncoder's fit method.
-        """
+       
         X_list, n_samples, n_features = self._check_X(X)
         self.n_features_in_ = n_features
-        self.feature_names_in_ = ['x%d' % i for i in range(n_features)]
         self.categories_ = []
         self.encoding_dict_ = []
         self.theta_arr_ = []
@@ -88,9 +96,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         return self
 
     def _transform(self, X):
-        """
-        Transform method for BaseEncoder1, similar to IEncoder's transform method.
-        """
+
         check_is_fitted(self, ['categories_', 'encoding_dict_'])
         X_list, n_samples, n_features = self._check_X(X)
         X_transformed = np.zeros((n_samples, n_features))

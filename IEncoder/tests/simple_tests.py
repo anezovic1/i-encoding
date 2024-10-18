@@ -18,74 +18,76 @@ print("data that is i encoded:\n", transformed)
 inversed = encoder.inverse_transform(transformed)
 print("inverse data:\n", inversed)
 
-print("-------------------------------- TEST --------------------------------\n\n")
+print("Feature name:\n", encoder.get_feature_names_out())
+
+#print("-------------------------------- TEST --------------------------------\n\n")
 ########################### second example ########################### 
-data_new = {'Employee id': [10, 20, 15, 25, 30],
-        'Gender': ['M', 'F', 'F', 'M', 'F'],
-        'Remarks': ['Good', 'Nice', 'Good', 'Great', 'Nice'],
-        'NewColumn': ['1', '2', '1', '3', '2'], # only nominal
-        }
+# data_new = {'Employee id': [10, 20, 15, 25, 30],
+#         'Gender': ['M', 'F', 'F', 'M', 'F'],
+#         'Remarks': ['Good', 'Nice', 'Good', 'Great', 'Nice'],
+#         'NewColumn': ['1', '2', '1', '3', '2'], # only nominal
+#         }
 
-encoder = IEncoder()
+# encoder = IEncoder()
 
-df = pd.DataFrame(data_new)
-print("employee data:\n", df)
+# df = pd.DataFrame(data_new)
+# print("employee data:\n", df)
 
-transformed = encoder.fit_transform(df)
-print("data that is i encoded:\n", transformed)
+# transformed = encoder.fit_transform(df)
+# print("data that is i encoded:\n", transformed)
 
-print("-------------------------------- TEST --------------------------------\n\n")
-########################### third example ########################### 
-data_new_2 = pd.DataFrame({'Employee id': [10, 20, 15, 25, 30],
-        'Gender': ['M', 'F', 'F', 'M', 'F'],
-        'Remarks': ['Good', 'Nice', 'Good', 'Great', 'Nice'],
-        'NewColumn': [True, True, False, False, False],
-    })
+# print("-------------------------------- TEST --------------------------------\n\n")
+# ########################### third example ########################### 
+# data_new_2 = pd.DataFrame({'Employee id': [10, 20, 15, 25, 30],
+#         'Gender': ['M', 'F', 'F', 'M', 'F'],
+#         'Remarks': ['Good', 'Nice', 'Good', 'Great', 'Nice'],
+#         'NewColumn': [True, True, False, False, False],
+#     })
 
-encoder = IEncoder()
+# encoder = IEncoder()
 
-transformed = encoder.fit_transform(data_new_2)
-print("data that is i encoded:\n", transformed)
+# transformed = encoder.fit_transform(data_new_2)
+# print("data that is i encoded:\n", transformed)
 
-inversed = encoder.inverse_transform(transformed)
-print("inverse data:\n", inversed)
+# inversed = encoder.inverse_transform(transformed)
+# print("inverse data:\n", inversed)
 
-print("-------------------------------- TEST --------------------------------\n\n")
-########################### fourth example ########################### 
-from sklearn.preprocessing import OneHotEncoder
+# print("-------------------------------- TEST --------------------------------\n\n")
+# ########################### fourth example ########################### 
+# from sklearn.preprocessing import OneHotEncoder
 
-data_new_3 = pd.DataFrame({'Category': ['A', 'B', 'C', 'A', 'B']})
+# data_new_3 = pd.DataFrame({'Category': ['A', 'B', 'C', 'A', 'B']})
 
-one_hot_encoder = OneHotEncoder(sparse_output=False)
-one_hot_encoded = one_hot_encoder.fit_transform(data_new_3[['Category']])
-encoded_df = pd.DataFrame(one_hot_encoded, columns=one_hot_encoder.get_feature_names_out(['Category']))
-print("one-hot encoded data:\n", encoded_df)
+# one_hot_encoder = OneHotEncoder(sparse_output=False)
+# one_hot_encoded = one_hot_encoder.fit_transform(data_new_3[['Category']])
+# encoded_df = pd.DataFrame(one_hot_encoded, columns=one_hot_encoder.get_feature_names_out(['Category']))
+# print("one-hot encoded data:\n", encoded_df)
 
-i_encoder = IEncoder()
-i_encoded = encoder.fit_transform(data_new_3[['Category']])
-i_encoded_df = pd.DataFrame(i_encoded, columns=i_encoder.get_feature_names_out(['Category']))
-print("i encoded data:\n", i_encoded_df)
+# i_encoder = IEncoder()
+# i_encoded = encoder.fit_transform(data_new_3[['Category']])
+# i_encoded_df = pd.DataFrame(i_encoded, columns=i_encoder.get_feature_names_out(['Category']))
+# print("i encoded data:\n", i_encoded_df)
 
-print("-------------------------------- TEST --------------------------------\n\n")  # ????
-########################### fifth example ########################### 
+# print("-------------------------------- TEST --------------------------------\n\n")  # ????
+# ########################### fifth example ########################### 
 
-data_new_4 = pd.DataFrame({'Category': ['A', 'B', np.nan, 'A', 'B']})
+# data_new_4 = pd.DataFrame({'Category': ['A', 'B', np.nan, 'A', 'B']})
 
-one_hot_encoder = OneHotEncoder(sparse_output=False)
-try:
-    one_hot_encoded = one_hot_encoder.fit_transform(data_new_4[['Category']])
-    print("one-hot encoded data with NaN:\n", one_hot_encoded)
-except Exception as e:
-    print("izuzetak bacen")
-    print(e)
+# one_hot_encoder = OneHotEncoder(sparse_output=False)
+# try:
+#     one_hot_encoded = one_hot_encoder.fit_transform(data_new_4[['Category']])
+#     print("one-hot encoded data with NaN:\n", one_hot_encoded)
+# except Exception as e:
+#     print("izuzetak bacen")
+#     print(e)
 
-i_encoder = IEncoder()
-try:
-    i_encoded = i_encoder.fit_transform(data_new_4[['Category']])
-    print("i encoded data with NaN:\n", i_encoded)
-except Exception as e:
-    print("izuzetak bacen")
-    print(e)
+# i_encoder = IEncoder()
+# try:
+#     i_encoded = i_encoder.fit_transform(data_new_4[['Category']])
+#     print("i encoded data with NaN:\n", i_encoded)
+# except Exception as e:
+#     print("izuzetak bacen")
+#     print(e)
 
 
 # print("-------------------------------- TEST --------------------------------\n\n")  # ????
