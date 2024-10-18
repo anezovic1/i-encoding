@@ -23,7 +23,7 @@ print("-------------------------------- TEST --------------------------------\n\
 data_new = {'Employee id': [10, 20, 15, 25, 30],
         'Gender': ['M', 'F', 'F', 'M', 'F'],
         'Remarks': ['Good', 'Nice', 'Good', 'Great', 'Nice'],
-        'NewColumn': ['1', '2', '1', '3', '2'],
+        'NewColumn': ['1', '2', '1', '3', '2'], # only nominal
         }
 
 encoder = IEncoder()

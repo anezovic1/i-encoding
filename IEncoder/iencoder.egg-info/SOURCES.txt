@@ -1,8 +1,0 @@
-setup.py
-IEncoder/__init__.py
-IEncoder/i_encoder.py
-iencoder.egg-info/PKG-INFO
-iencoder.egg-info/SOURCES.txt
-iencoder.egg-info/dependency_links.txt
-iencoder.egg-info/top_level.txt
-tests/test_i_encoder.py
