@@ -3,6 +3,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 import copy
+import warnings
 
 class BaseEncoder1(TransformerMixin, BaseEstimator):
     """
@@ -10,15 +11,15 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
     transform the input features.
     """
 
-    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown="error"):
+    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error'):
         self.categories_ = None
         self.encoding_dict_ = None
         self.theta_arr_ = None
         self.feature_names_in_ = None
         self.categories = categories
         self.num_of_decimal_places = num_of_decimal_places
-        self.handle_unknown=handle_unknown
-            
+        self.handle_unknown = handle_unknown
+
     def _check_finite(self, X):
         """
         Check if array contains NaN or infinite values.
@@ -35,10 +36,10 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
                     raise ValueError("Input contains NaN, infinity or a value too large for dtype.")
 
     def _check_X(self, X, force_all_finite=True):
-        # ovaj if se izvrsava kada NIJE dataframe
-        if not (hasattr(X, "iloc") and getattr(X, "ndim", 0) == 2):
+        # this block executes when X is not a DataFrame
+        if not (hasattr(X, 'iloc') and getattr(X, 'ndim', 0) == 2):
             X_temp = check_array(X, dtype=None)
-            if not hasattr(X, "dtype") and np.issubdtype(X_temp.dtype, np.str_):
+            if not hasattr(X, 'dtype') and np.issubdtype(X_temp.dtype, np.str_):
                 X = check_array(X, dtype=object)
             else:
                 X = X_temp
@@ -57,7 +58,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
 
             Xi = X.iloc[:, i] if hasattr(X, 'iloc') else X[:, i]
 
-            # this throws exception if dataframe contains NaN values
+            # this throws an exception if the DataFrame contains NaN values
             Xi = check_array(Xi, ensure_2d=False, dtype=None)
 
             if force_all_finite:
@@ -78,7 +79,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         except ValueError:
             return False
 
-    def _fit(self, X, y=None, handle_unknown="error"):
+    def _fit(self, X, y=None):
         X_list, n_samples, n_features = self._check_X(X)
         self.n_features_in_ = n_features
         self.categories_ = []
@@ -97,7 +98,6 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             else:
                 unique_categories = np.unique(Xi)
 
-            # unique_categories = np.unique(Xi)
             n_categories = len(unique_categories)
             theta = 2 * np.pi / n_categories
             theta_arr = np.arange(0, 2 * np.pi, theta)
@@ -111,7 +111,6 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         return self
 
     def _transform(self, X):
-
         check_is_fitted(self, ['categories_', 'encoding_dict_'])
         X_list, n_samples, n_features = self._check_X(X)
         X_transformed = np.zeros((n_samples, n_features))
@@ -126,18 +125,27 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             if self._skip_encoding(Xi):
                 X_transformed[:, i] = Xi
                 continue
-
-            encoding_dict = self.encoding_dict_[encoding_index] # encoding_dict_ already has key-value pairs
+            
+            # encoding_dict_ already has key-value pairs
+            encoding_dict = self.encoding_dict_[encoding_index] 
             categories = self.categories_[encoding_index]
 
+            # check for unknown categories
             Xi = np.array(Xi)
             unknown_mask = ~np.isin(Xi, categories)
 
             if np.any(unknown_mask):
                 if self.handle_unknown == "error":
-                    unknown_categories = Xi[unknown_mask]
-                    raise ValueError("Unknown categories during transform")
+                    raise ValueError(f"Unknown categories during transform")
                 elif self.handle_unknown == "ignore":
+                    # map unknown categories to np.nan
+                    Xi_transformed = np.array([encoding_dict.get(xi, np.nan) for xi in Xi])
+                elif self.handle_unknown == "warn":
+                    warnings.warn(
+                        f"Unknown categories during transform.",
+                        UserWarning
+                    )
+                    # proceed as 'ignore'
                     Xi_transformed = np.array([encoding_dict.get(xi, np.nan) for xi in Xi])
                 else:
                     raise ValueError(f"Invalid value for handle_unknown: {self.handle_unknown}")
@@ -146,38 +154,46 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
 
             X_transformed[:, i] = Xi_transformed
 
-            encoding_index = encoding_index + 1
+            encoding_index += 1
 
         return X_transformed
 
     def fit(self, X, y=None):
         """
-        Public fit method that calls the internal _fit method.
+        Fit the encoder to X.
         """
+        valid_handle_unknown = {'error', 'ignore', 'warn'}
+        if self.handle_unknown not in valid_handle_unknown:
+            raise ValueError(
+                f"Invalid value for 'handle_unknown': {self.handle_unknown}. "
+                f"Allowed values are {valid_handle_unknown}."
+            )
         return self._fit(X, y)
 
     def transform(self, X):
         """
-        Public transform method that calls the internal _transform method.
+        Transform X using the fitted encoder.
         """
         return self._transform(X)
 
     def fit_transform(self, X, y=None):
         """
-        Combines fit and transform methods for efficiency.
+        Fit the encoder to X, then transform X.
         """
         return self.fit(X, y).transform(X)
 
 
 class IEncoder(BaseEncoder1):
     """
-    I Encoder that extends BaseEncoder1.
+    IEncoder that extends BaseEncoder1.
     """
 
-    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown="error"):
-        super().__init__(categories=categories, 
-                         num_of_decimal_places=num_of_decimal_places,
-                         handle_unknown=handle_unknown)
+    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error'):
+        super().__init__(
+            categories=categories, 
+            num_of_decimal_places=num_of_decimal_places,
+            handle_unknown=handle_unknown
+        )
 
     def inverse_transform(self, X_encoded):
         """
@@ -198,6 +214,7 @@ class IEncoder(BaseEncoder1):
             categories = self.categories_[i]
             X_enc_i = X_encoded[:, i]
 
+            # Handle unknown values (e.g., np.nan)
             unknown_mask = np.isnan(X_enc_i)
             if np.any(unknown_mask):
                 X_enc_i = X_enc_i.copy()
@@ -206,7 +223,9 @@ class IEncoder(BaseEncoder1):
             indices = np.argmin(np.abs(X_enc_i[:, np.newaxis] - theta_arr), axis=1)
             X_inversed_i = categories[indices]
 
+            # for unknowns, set to None
             if np.any(unknown_mask):
+                X_inversed_i = X_inversed_i.astype(object)
                 X_inversed_i[unknown_mask] = None
 
             X_inversed.append(X_inversed_i)
