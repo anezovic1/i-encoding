@@ -145,6 +145,51 @@ from IEncoder.i_encoder import IEncoder
 
 # print("-------------------------------- 10. TEST --------------------------------\n\n")  
 
+# data = pd.DataFrame({
+#     'color': ['red', 'blue', 'green', 'blue', 'red'],
+#     'size': ['S', 'M', 'L', 'M', 'S']
+# })
+
+# encoder = IEncoder(handle_unknown='warn')
+# encoder.fit(data)
+# transformed = encoder.transform(data)
+# print("Transformed data:\n", transformed)
+
+# new_data = pd.DataFrame({
+#     'color': ['red', 'yellow'],  
+#     'size': ['S', 'XL']          
+# })
+# transformed_new = encoder.transform(new_data)
+# print("Transformed new data:\n", transformed_new)
+
+# inversed_new = encoder.inverse_transform(transformed_new)
+# print("Inverse transformed new data:\n", inversed_new)
+
+# print("-------------------------------- 11. TEST --------------------------------\n\n")  
+
+# data = pd.DataFrame({
+#     'color': ['red', 'blue', 'green', 'blue', 'red'],
+#     'size': ['S', 'M', 'L', 'M', 'S']
+# })
+
+# encoder = IEncoder(categories='auto', num_of_decimal_places=2, handle_unknown='error')
+
+# print("Initial parameters:")
+# print(encoder.get_params())
+
+# encoder.set_params(num_of_decimal_places=4, handle_unknown='ignore')
+
+# print("\nUpdated parameters:")
+# print(encoder.get_params())
+
+# encoder.fit(data)
+# transformed_data = encoder.transform(data)
+
+# print("\nTransformed data with updated parameters:")
+# print(transformed_data)
+
+# print("-------------------------------- 12. TEST --------------------------------\n\n")  
+
 data = pd.DataFrame({
     'color': ['red', 'blue', 'green', 'blue', 'red'],
     'size': ['S', 'M', 'L', 'M', 'S']
@@ -152,19 +197,6 @@ data = pd.DataFrame({
 
 encoder = IEncoder(handle_unknown='infrequent_if_exist')
 encoder.fit(data)
-transformed = encoder.transform(data)
-print("Transformed data:\n", transformed)
-
-new_data = pd.DataFrame({
-    'color': ['red', 'yellow'],  
-    'size': ['S', 'XL']          
-})
-transformed_new = encoder.transform(new_data)
-print("Transformed new data:\n", transformed_new)
-
-inversed_new = encoder.inverse_transform(transformed_new)
-print("Inverse transformed new data:\n", inversed_new)
-
 
 # enc = OneHotEncoder(handle_unknown='ignore')
 # X = [['Male', 1], ['Female', 3], ['Female', 2]]
