@@ -108,7 +108,62 @@ from IEncoder.i_encoder import IEncoder
 # except Exception as e:
 #     print(e)
 
-# print("-------------------------------- 8. TEST --------------------------------\n\n")  
+# # print("-------------------------------- 8. TEST --------------------------------\n\n")  
+
+# data = pd.DataFrame({
+#     'color': ['red', 'blue', 'green', 'blue', 'red'],
+#     'size': ['S', 'M', 'L', 'M', 'S']
+# })
+
+# categories = [
+#     ['blue', 'green', 'red'],  
+#     ['S', 'M', 'L']         
+# ]
+
+# encoder = IEncoder(categories=categories)
+# transformed = encoder.fit_transform(data)
+
+# print("Transformed data:\n", transformed)
+# print(encoder.get_params())
+
+# print("-------------------------------- 9. TEST --------------------------------\n\n")  
+
+# data = pd.DataFrame({
+#     'color': ['red', 'blue', 'green', 'blue', 'red'],
+#     'size': ['S', 'M', 'L', 'M', 'S']
+# })
+
+# categories = [
+#     ['blue', 'green', 'red'],  
+#     ['S', 'M', 'L']         
+# ]
+
+# encoder = IEncoder(categories=categories, num_of_decimal_places=5)
+# transformed = encoder.fit_transform(data)
+
+# print("Transformed data:\n", transformed)
+
+# print("-------------------------------- 10. TEST --------------------------------\n\n")  
+
+data = pd.DataFrame({
+    'color': ['red', 'blue', 'green', 'blue', 'red'],
+    'size': ['S', 'M', 'L', 'M', 'S']
+})
+
+encoder = IEncoder(handle_unknown='infrequent_if_exist')
+encoder.fit(data)
+transformed = encoder.transform(data)
+print("Transformed data:\n", transformed)
+
+new_data = pd.DataFrame({
+    'color': ['red', 'yellow'],  
+    'size': ['S', 'XL']          
+})
+transformed_new = encoder.transform(new_data)
+print("Transformed new data:\n", transformed_new)
+
+inversed_new = encoder.inverse_transform(transformed_new)
+print("Inverse transformed new data:\n", inversed_new)
 
 
 # enc = OneHotEncoder(handle_unknown='ignore')

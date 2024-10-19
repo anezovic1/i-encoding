@@ -10,11 +10,14 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
     transform the input features.
     """
 
-    def __init__(self):
+    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown="error"):
         self.categories_ = None
         self.encoding_dict_ = None
         self.theta_arr_ = None
         self.feature_names_in_ = None
+        self.categories = categories
+        self.num_of_decimal_places = num_of_decimal_places
+        self.handle_unknown=handle_unknown
             
     def _check_finite(self, X):
         """
@@ -30,7 +33,6 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             if np.issubdtype(X.dtype, np.number):
                 if np.any(np.isnan(X)) or np.any(np.isinf(X)):
                     raise ValueError("Input contains NaN, infinity or a value too large for dtype.")
-
 
     def _check_X(self, X, force_all_finite=True):
         # ovaj if se izvrsava kada NIJE dataframe
@@ -76,7 +78,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         except ValueError:
             return False
 
-    def _fit(self, X, y=None):
+    def _fit(self, X, y=None, handle_unknown="error"):
         X_list, n_samples, n_features = self._check_X(X)
         self.n_features_in_ = n_features
         self.categories_ = []
@@ -90,11 +92,16 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             if self._skip_encoding(Xi):
                 continue
 
-            unique_categories = np.unique(Xi)
+            if self.categories != 'auto':
+                unique_categories = self.categories[i]
+            else:
+                unique_categories = np.unique(Xi)
+
+            # unique_categories = np.unique(Xi)
             n_categories = len(unique_categories)
             theta = 2 * np.pi / n_categories
             theta_arr = np.arange(0, 2 * np.pi, theta)
-            theta_arr = np.round(theta_arr, 2)
+            theta_arr = np.round(theta_arr, self.num_of_decimal_places)
 
             encoding_dict = {category: theta_val for category, theta_val in zip(unique_categories, theta_arr)}
             self.categories_.append(unique_categories)
@@ -119,8 +126,25 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
             if self._skip_encoding(Xi):
                 X_transformed[:, i] = Xi
                 continue
+
             encoding_dict = self.encoding_dict_[encoding_index] # encoding_dict_ already has key-value pairs
-            X_transformed[:, i] = np.vectorize(encoding_dict.get)(Xi)
+            categories = self.categories_[encoding_index]
+
+            Xi = np.array(Xi)
+            unknown_mask = ~np.isin(Xi, categories)
+
+            if np.any(unknown_mask):
+                if self.handle_unknown == "error":
+                    unknown_categories = Xi[unknown_mask]
+                    raise ValueError("Unknown categories during transform")
+                elif self.handle_unknown == "ignore":
+                    Xi_transformed = np.array([encoding_dict.get(xi, np.nan) for xi in Xi])
+                else:
+                    raise ValueError(f"Invalid value for handle_unknown: {self.handle_unknown}")
+            else:
+                Xi_transformed = np.vectorize(encoding_dict.get)(Xi)
+
+            X_transformed[:, i] = Xi_transformed
 
             encoding_index = encoding_index + 1
 
@@ -150,8 +174,10 @@ class IEncoder(BaseEncoder1):
     I Encoder that extends BaseEncoder1.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown="error"):
+        super().__init__(categories=categories, 
+                         num_of_decimal_places=num_of_decimal_places,
+                         handle_unknown=handle_unknown)
 
     def inverse_transform(self, X_encoded):
         """
@@ -171,8 +197,19 @@ class IEncoder(BaseEncoder1):
             theta_arr = self.theta_arr_[i]
             categories = self.categories_[i]
             X_enc_i = X_encoded[:, i]
+
+            unknown_mask = np.isnan(X_enc_i)
+            if np.any(unknown_mask):
+                X_enc_i = X_enc_i.copy()
+                X_enc_i[unknown_mask] = np.nan
+
             indices = np.argmin(np.abs(X_enc_i[:, np.newaxis] - theta_arr), axis=1)
-            X_inversed.append(categories[indices])
+            X_inversed_i = categories[indices]
+
+            if np.any(unknown_mask):
+                X_inversed_i[unknown_mask] = None
+
+            X_inversed.append(X_inversed_i)
 
         return np.array(X_inversed).T
 
