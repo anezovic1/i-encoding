@@ -1,5 +1,7 @@
 import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 import copy
@@ -11,7 +13,7 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
     transform the input features.
     """
 
-    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error'):
+    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error', target_column=None):
         self.categories_ = None
         self.encoding_dict_ = None
         self.theta_arr_ = None
@@ -19,6 +21,8 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         self.categories = categories
         self.num_of_decimal_places = num_of_decimal_places
         self.handle_unknown = handle_unknown
+        self.target_column = target_column  
+        self.label_encoder_ = LabelEncoder() if target_column else None
 
     def _check_finite(self, X):
         """
@@ -55,7 +59,6 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         n_samples, n_features = X.shape
         X_columns = []
         for i in range(n_features):
-
             Xi = X.iloc[:, i] if hasattr(X, 'iloc') else X[:, i]
 
             # this throws an exception if the DataFrame contains NaN values
@@ -86,8 +89,15 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         self.encoding_dict_ = []
         self.theta_arr_ = []
 
-        for i in range(n_features):
+        for i, column_name in enumerate(self.feature_names_in_):
             Xi = X_list[i]
+
+            if column_name == self.target_column:
+                if self.label_encoder_ is not None:
+                    Xi = self.label_encoder_.fit_transform(Xi)  # target column encoded with LabelEncoder
+                X_list[i] = Xi
+                continue
+
             if not self._is_categorical(Xi):
                 continue
             if self._skip_encoding(Xi):
@@ -117,8 +127,15 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
 
         encoding_index = 0
 
-        for i in range(n_features):
-            Xi = X_list[i] 
+        for i, column_name in enumerate(self.feature_names_in_):
+            Xi = X_list[i]
+
+            if column_name == self.target_column:
+                if self.label_encoder_ is not None:
+                    Xi = self.label_encoder_.transform(Xi)  # target column encoded with LabelEncoder
+                X_transformed[:, i] = Xi
+                continue
+
             if not self._is_categorical(Xi):
                 X_transformed[:, i] = Xi
                 continue
@@ -153,7 +170,6 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
                 Xi_transformed = np.vectorize(encoding_dict.get)(Xi)
 
             X_transformed[:, i] = Xi_transformed
-
             encoding_index += 1
 
         return X_transformed
@@ -174,25 +190,27 @@ class BaseEncoder1(TransformerMixin, BaseEstimator):
         """
         Transform X using the fitted encoder.
         """
-        return self._transform(X)
+        X_transformed = self._transform(X)
+        return pd.DataFrame(X_transformed, columns=self.feature_names_in_)
 
     def fit_transform(self, X, y=None):
         """
         Fit the encoder to X, then transform X.
         """
-        return self.fit(X, y).transform(X)
-
+        X_transformed = self.fit(X, y).transform(X)
+        return pd.DataFrame(X_transformed, columns=self.feature_names_in_)
 
 class IEncoder(BaseEncoder1):
     """
     IEncoder that extends BaseEncoder1.
     """
 
-    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error'):
+    def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error', target_column=None):
         super().__init__(
             categories=categories, 
             num_of_decimal_places=num_of_decimal_places,
-            handle_unknown=handle_unknown
+            handle_unknown=handle_unknown,
+            target_column=target_column
         )
 
     def inverse_transform(self, X_encoded):
