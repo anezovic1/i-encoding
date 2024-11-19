@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-from IEncoder.i_encoder import IEncoder
+from IEncoder.iencoder import IEncoder
 
 print("-------------------------------- 1. TEST --------------------------------\n\n")
 data = pd.DataFrame({
@@ -82,7 +82,7 @@ try:
 except Exception as e:
     print(e)
 
-# print("-------------------------------- 6. TEST --------------------------------\n\n")  
+print("-------------------------------- 6. TEST --------------------------------\n\n")  
 
 data_new_4 = pd.DataFrame({'A': [1, 2, np.nan, 1, 2], 
                            'B': [5, 6, 5, 3, 6]
@@ -108,7 +108,7 @@ try:
 except Exception as e:
     print(e)
 
-# print("-------------------------------- 8. TEST --------------------------------\n\n")  
+print("-------------------------------- 8. TEST --------------------------------\n\n")  
 
 data = pd.DataFrame({
     'color': ['red', 'blue', 'green', 'blue', 'red'],

@@ -3,9 +3,8 @@
 # import numpy as np
 # import pandas as pd
 # import pytest
-# from IEncoder.i_encoder import IEncoder
+# from IEncoder.iencoder import IEncoder
 
-# # Fixture za sample data
 # @pytest.fixture
 # def sample_data():
 #     data = pd.DataFrame({
@@ -30,19 +29,18 @@
 # def test_transform(sample_data, encoder): ######
 #     encoder.fit(sample_data)
 #     transformed = encoder.transform(sample_data)
+
 #     assert isinstance(transformed, np.ndarray)
 #     assert transformed.shape == sample_data.shape
-#     # Provjera da su nenumeričke kolone kodirane
 #     assert not np.array_equal(transformed[:, 0], sample_data['color'].astype(float))
 #     assert not np.array_equal(transformed[:, 1], sample_data['size'].astype(float))
-#     # Numerička kolona ostaje ista
 #     assert np.array_equal(transformed[:, 2], sample_data['quantity'])
 
 # def test_inverse_transform(sample_data, encoder): ######
 #     encoder.fit(sample_data)
 #     transformed = encoder.transform(sample_data)
 #     inversed = encoder.inverse_transform(transformed)
-#     # Provjera da su originalne kategorije vraćene
+#     # Checking if the original categories are returned
 #     pd.testing.assert_frame_equal(pd.DataFrame(inversed, columns=['x0', 'x1', 'x2']), sample_data)
 
 # def test_fit_transform(sample_data, encoder):
@@ -56,7 +54,6 @@
 #     assert feature_names == ['x0', 'x1', 'x2']
 
 # def test_set_params(sample_data, encoder):
-#     # Iako vaša klasa nema parametre, ovaj test osigurava da set_params ne baca greške
 #     encoder.set_params()
 #     assert True  # Ako ne baci iznimku, test prolazi
 
@@ -66,6 +63,3 @@
 #     assert 'categories_' in params
 #     assert 'encoding_dict_' in params
 #     assert 'theta_arr_' in params
-
-# ctrl + a
-# ctrl + '
