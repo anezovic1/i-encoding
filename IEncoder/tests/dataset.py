@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
+from sklearn.calibration import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
-from IEncoder.i_encoder import IEncoder
+from IEncoder.iencoder import IEncoder
 
 data = pd.read_csv('C:\\Users\\anida\\Downloads\\psi\\Airbnb\\train_users_2.csv\\train_users_2.csv')
 

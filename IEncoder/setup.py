@@ -4,7 +4,7 @@ setup(
     name='iencoder',
     version='0.1',
     packages=find_packages(),
-    description='Custom IEncoder similar to OneHotEncoder',
+    description='Custom IEncoder for encoding categorical variables.',
     author='Anida Nezovic',
     author_email='nezovicanida@gmail.com',
 )

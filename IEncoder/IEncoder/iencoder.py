@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 import copy
@@ -10,7 +9,7 @@ import warnings
 class BaseEncoder(TransformerMixin, BaseEstimator):
     """
     Base class for encoders that includes the code to categorize and
-    transform the input features.
+    transform the input features. The target column is removed.
     """
     def __init__(self, categories='auto', num_of_decimal_places=2, handle_unknown='error', target_column=None):
         self.categories_ = None
@@ -21,7 +20,6 @@ class BaseEncoder(TransformerMixin, BaseEstimator):
         self.num_of_decimal_places = num_of_decimal_places
         self.handle_unknown = handle_unknown
         self.target_column = target_column  
-        self.label_encoder_ = LabelEncoder() if target_column else None
 
     def _check_finite(self, X):
         """
@@ -92,11 +90,7 @@ class BaseEncoder(TransformerMixin, BaseEstimator):
             Xi = X_list[i]
 
             if column_name == self.target_column:
-                if self.label_encoder_ is not None:
-                    Xi = self.label_encoder_.fit_transform(Xi)  # target column encoded with LabelEncoder
-                X_list[i] = Xi
                 continue
-
             if not self._is_categorical(Xi):
                 continue
             if self._skip_encoding(Xi):
@@ -130,11 +124,7 @@ class BaseEncoder(TransformerMixin, BaseEstimator):
             Xi = X_list[i]
 
             if column_name == self.target_column:
-                if self.label_encoder_ is not None:
-                    Xi = self.label_encoder_.transform(Xi)  # target column encoded with LabelEncoder
-                X_transformed[:, i] = Xi
                 continue
-
             if not self._is_categorical(Xi):
                 X_transformed[:, i] = Xi
                 continue
@@ -190,14 +180,22 @@ class BaseEncoder(TransformerMixin, BaseEstimator):
         Transform X using the fitted encoder.
         """
         X_transformed = self._transform(X)
-        return pd.DataFrame(X_transformed, columns=self.feature_names_in_)
+        X_transformed_df = pd.DataFrame(X_transformed, columns=self.feature_names_in_)
+
+        if self.target_column in X_transformed_df.columns:
+            X_transformed_df = X_transformed_df.drop(columns=[self.target_column])
+
+        return X_transformed_df
 
     def fit_transform(self, X, y=None):
         """
         Fit the encoder to X, then transform X.
         """
         X_transformed = self.fit(X, y).transform(X)
-        return pd.DataFrame(X_transformed, columns=self.feature_names_in_)
+        if self.target_column in X_transformed.columns:
+            X_transformed = X_transformed.drop(columns=[self.target_column])
+
+        return X_transformed
 
 class IEncoder(BaseEncoder):
     """
@@ -268,3 +266,6 @@ class IEncoder(BaseEncoder):
         Set the parameters of this estimator.
         """
         return super().set_params(**params)
+
+
+
