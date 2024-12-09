@@ -45,3 +45,7 @@ pip install iencoder
 If you have any questions, suggestions or feedback, feel free to reach out:
 
 - Email: nezovicanida@gmail.com
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
